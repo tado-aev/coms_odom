@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="coms_odom" type="coms_odom_node" name="coms_odom" >
+    <rosparam command="load" file="$(find coms_odom)/configs/coms.yaml"/>
+  </node>
+  <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="odom_trajectory" >
+    <param name="target_frame_name" type="string" value="odom" />
+    <param name="source_frame_name" type="string" value="base_link" />
+    <param name="trajectory_publish_rate" type="double" value="4" />
+  </node>
+</launch>

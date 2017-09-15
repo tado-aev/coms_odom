@@ -1,0 +1,8 @@
+base_frame: 'base_link'
+odom_frame: 'odom'
+# In meters
+wheel_diameter: 0.5078
+# 4 times the pulses per rotation from the transducer
+counts_per_rotation: 2000
+# TODO: measure this
+encoder_to_axis_center: 42
