@@ -187,8 +187,10 @@ ComsOdom::send_transforms() {
                    - last_imu_data.header.stamp).toSec();
 
     rpy = std::make_tuple(
-        limit_rad(std::get<0>(rpy) + (std::get<0>(d_rpy) * imu_dt)),
-        limit_rad(std::get<1>(rpy) + (std::get<1>(d_rpy) * imu_dt)),
+        0,
+        0,
+        //limit_rad(std::get<0>(rpy) + (std::get<0>(d_rpy) * imu_dt)),
+        //limit_rad(std::get<1>(rpy) + (std::get<1>(d_rpy) * imu_dt)),
         limit_rad(std::get<2>(rpy) + (std::get<2>(d_rpy) * imu_dt))
     );
 
