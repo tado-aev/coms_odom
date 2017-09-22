@@ -2,6 +2,10 @@
 
 Odometry publisher for the COMS vehicle.
 
+## Dependencies
+
+- [coms_msgs](https://github.com/tado-aev/coms_msgs)
+
 ## Parameters
 
 - `wheel_diameter`: wheel's diameter in meters
