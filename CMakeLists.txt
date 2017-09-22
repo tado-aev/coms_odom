@@ -14,7 +14,7 @@ endif()
 
 find_package(catkin REQUIRED COMPONENTS
     roscpp
-    std_msgs
+    coms_msgs
     sensor_msgs
     nav_msgs
     tf2_ros
@@ -25,7 +25,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 catkin_package(
     INCLUDE_DIRS include
     LIBRARIES coms_odom
-    CATKIN_DEPENDS roscpp std_msgs sensor_msgs nav_msgs tf2_ros
+    CATKIN_DEPENDS roscpp coms_msgs sensor_msgs nav_msgs tf2_ros
     )
 
 include_directories(
