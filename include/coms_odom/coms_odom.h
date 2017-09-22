@@ -6,7 +6,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <nav_msgs/Odometry.h>
-#include <std_msgs/UInt32.h>
+#include <coms_msgs/ComsEncoder.h>
 #include <sensor_msgs/Imu.h>
 #include <geometry_msgs/TransformStamped.h>
 
@@ -41,7 +41,7 @@ public:
     /* }}} */
 
     void
-    encoder_callback(const std_msgs::UInt32& data);
+    encoder_callback(const coms_msgs::ComsEncoder& data);
 
     void
     imu_callback(const sensor_msgs::Imu& data);

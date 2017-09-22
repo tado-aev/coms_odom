@@ -128,10 +128,9 @@ ComsOdom::operator=(ComsOdom&& other) {
 /* }}} */
 
 void
-ComsOdom::encoder_callback(const std_msgs::UInt32& data) {
-    auto current_count = data.data;
-    // TODO: use stamped message for encoder
-    auto current_time = ros::Time::now();
+ComsOdom::encoder_callback(const coms_msgs::ComsEncoder& data) {
+    auto current_time = data.header.stamp;
+    auto current_count = data.count;
 
     if (is_first_encoder_msg) {
         last_encoder_count = current_count;
