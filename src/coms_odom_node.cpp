@@ -13,7 +13,7 @@ main(int argc, char* argv[]) {
     // Get parameters
     float wheel_diameter;
     int counts_per_rotation;
-    float encoder_to_axis_center;
+    float track;
     std::string base_frame;
     std::string odom_frame;
 
@@ -25,19 +25,19 @@ main(int argc, char* argv[]) {
         ROS_ERROR("Required parameter counts_per_rotation not specified");
         return 1;
     }
-    if (!nh_p.hasParam("encoder_to_axis_center")) {
-        ROS_ERROR("Required parameter encoder_to_axis_center not specified");
+    if (!nh_p.hasParam("track")) {
+        ROS_ERROR("Required parameter track not specified");
         return 1;
     }
 
     nh_p.getParam("wheel_diameter", wheel_diameter);
     nh_p.getParam("counts_per_rotation", counts_per_rotation);
-    nh_p.getParam("encoder_to_axis_center", encoder_to_axis_center);
+    nh_p.getParam("track", track);
     nh_p.param("base_frame", base_frame, std::string{"base_link"});
     nh_p.param("odom_frame", odom_frame, std::string{"odom"});
 
     ComsOdom coms_odom{static_cast<unsigned int>(counts_per_rotation),
-                       encoder_to_axis_center,
+                       track,
                        wheel_diameter,
                        odom_frame,
                        base_frame};

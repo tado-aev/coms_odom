@@ -4,5 +4,5 @@ odom_frame: 'odom'
 wheel_diameter: 0.5078
 # 4 times the pulses per rotation from the transducer
 counts_per_rotation: 2000
-# TODO: measure this
-encoder_to_axis_center: 42
+# Axle track (positive if encoder is on the left wheel, negative if on right
+track: 0.92

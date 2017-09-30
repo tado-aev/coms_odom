@@ -17,7 +17,7 @@ class ComsOdom {
 public:
     /* Constructors, Destructor, and Assignment operators {{{ */
     ComsOdom(unsigned int counts_per_rotation,
-             double encoder_to_axis_center,
+             double track,
              double wheel_diameter,
              const std::string& odom_frame,
              const std::string& base_frame);
@@ -62,9 +62,8 @@ private:
      * Distance, in meters, from the transducer to the center of the
      * wheel's axis. If the transducer is on the left wheel, value should
      * be negative.
-     * TODO: This is currently not used. Use it!
      */
-    double encoder_to_axis_center;
+    double track;
     /*
      * Diameter of the wheel
      */

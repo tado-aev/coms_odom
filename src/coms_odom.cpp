@@ -3,12 +3,12 @@
 /* Constructors, Destructor, and Assignment operators {{{ */
 // Default constructor
 ComsOdom::ComsOdom(unsigned int counts_per_rotation,
-                   double encoder_to_axis_center,
+                   double track,
                    double wheel_diameter,
                    const std::string& odom_frame,
                    const std::string& base_frame)
     : counts_per_rotation{counts_per_rotation}
-    , encoder_to_axis_center{encoder_to_axis_center}
+    , track{track}
     , wheel_diameter{wheel_diameter}
     , odom_frame{odom_frame}
     , base_frame{base_frame}
@@ -29,7 +29,7 @@ ComsOdom::ComsOdom(const ComsOdom& other)
     , odom_pub{other.odom_pub}
     , odom_broadcaster{other.odom_broadcaster}
     , counts_per_rotation{other.counts_per_rotation}
-    , encoder_to_axis_center{other.encoder_to_axis_center}
+    , track{other.track}
     , wheel_diameter{other.wheel_diameter}
     , odom_frame{other.odom_frame}
     , base_frame{other.base_frame}
@@ -54,7 +54,7 @@ ComsOdom::ComsOdom(ComsOdom&& other)
     , odom_pub{std::move(other.odom_pub)}
     , odom_broadcaster{std::move(other.odom_broadcaster)}
     , counts_per_rotation{std::move(other.counts_per_rotation)}
-    , encoder_to_axis_center{std::move(other.encoder_to_axis_center)}
+    , track{std::move(other.track)}
     , wheel_diameter{std::move(other.wheel_diameter)}
     , odom_frame{std::move(other.odom_frame)}
     , base_frame{std::move(other.base_frame)}
@@ -81,7 +81,7 @@ ComsOdom::operator=(const ComsOdom& other) {
     odom_pub = other.odom_pub;
     odom_broadcaster = other.odom_broadcaster;
     counts_per_rotation = other.counts_per_rotation;
-    encoder_to_axis_center = other.encoder_to_axis_center;
+    track = other.track;
     wheel_diameter = other.wheel_diameter;
     odom_frame = other.odom_frame;
     base_frame = other.base_frame;
@@ -107,7 +107,7 @@ ComsOdom::operator=(ComsOdom&& other) {
     odom_pub = std::move(other.odom_pub);
     odom_broadcaster = std::move(other.odom_broadcaster);
     counts_per_rotation = std::move(other.counts_per_rotation);
-    encoder_to_axis_center = std::move(other.encoder_to_axis_center);
+    track = std::move(other.track);
     wheel_diameter = std::move(other.wheel_diameter);
     odom_frame = std::move(other.odom_frame);
     base_frame = std::move(other.base_frame);
@@ -182,6 +182,10 @@ ComsOdom::send_transforms() {
     d_rpy = std::make_tuple(current_imu_data.angular_velocity.x,
                             -current_imu_data.angular_velocity.y,
                             -current_imu_data.angular_velocity.z);
+    /*
+     * Get the speed at the center of body
+     */
+    speed += std::get<2>(d_rpy) * track / 2;
     auto imu_dt = (current_imu_data.header.stamp
                    - last_imu_data.header.stamp).toSec();
 
@@ -202,7 +206,6 @@ ComsOdom::send_transforms() {
         std::get<1>(xyz) + (offset * std::sin(yaw)),
         0
     );
-    // TODO: encoder_to_axis_center is probably going to be used here
     d_xyz = std::make_tuple(
         speed * std::cos(yaw),
         speed * std::sin(yaw),
