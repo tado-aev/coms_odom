@@ -5,11 +5,15 @@
 ComsOdom::ComsOdom(unsigned int counts_per_rotation,
                    double track,
                    double wheel_diameter,
+                   unsigned int drift_correction,
                    const std::string& odom_frame,
                    const std::string& base_frame)
     : counts_per_rotation{counts_per_rotation}
     , track{track}
     , wheel_diameter{wheel_diameter}
+    , drift_correction{drift_correction}
+    , past_imu{drift_correction}
+    , last_calculated_drift{0}
     , odom_frame{odom_frame}
     , base_frame{base_frame}
     , is_first_encoder_msg{true}
@@ -31,6 +35,9 @@ ComsOdom::ComsOdom(const ComsOdom& other)
     , counts_per_rotation{other.counts_per_rotation}
     , track{other.track}
     , wheel_diameter{other.wheel_diameter}
+    , drift_correction{other.drift_correction}
+    , past_imu{other.past_imu}
+    , last_calculated_drift{other.last_calculated_drift}
     , odom_frame{other.odom_frame}
     , base_frame{other.base_frame}
     , xyz{other.xyz}
@@ -56,6 +63,9 @@ ComsOdom::ComsOdom(ComsOdom&& other)
     , counts_per_rotation{std::move(other.counts_per_rotation)}
     , track{std::move(other.track)}
     , wheel_diameter{std::move(other.wheel_diameter)}
+    , drift_correction{std::move(other.drift_correction)}
+    , past_imu{std::move(other.past_imu)}
+    , last_calculated_drift{std::move(other.last_calculated_drift)}
     , odom_frame{std::move(other.odom_frame)}
     , base_frame{std::move(other.base_frame)}
     , xyz{std::move(other.xyz)}
@@ -83,6 +93,9 @@ ComsOdom::operator=(const ComsOdom& other) {
     counts_per_rotation = other.counts_per_rotation;
     track = other.track;
     wheel_diameter = other.wheel_diameter;
+    drift_correction = other.drift_correction;
+    past_imu = other.past_imu;
+    last_calculated_drift = other.last_calculated_drift;
     odom_frame = other.odom_frame;
     base_frame = other.base_frame;
     xyz = other.xyz;
@@ -109,6 +122,9 @@ ComsOdom::operator=(ComsOdom&& other) {
     counts_per_rotation = std::move(other.counts_per_rotation);
     track = std::move(other.track);
     wheel_diameter = std::move(other.wheel_diameter);
+    drift_correction = std::move(other.drift_correction);
+    past_imu = std::move(other.past_imu);
+    last_calculated_drift = std::move(other.last_calculated_drift);
     odom_frame = std::move(other.odom_frame);
     base_frame = std::move(other.base_frame);
     xyz = std::move(other.xyz);
@@ -159,6 +175,14 @@ ComsOdom::imu_callback(const sensor_msgs::Imu& data) {
     }
 
     is_first_imu_msg = false;
+
+    // Can't calculate drift when moving
+    if (speed == 0) {
+        past_imu.push_back(current_imu_data);
+    }
+    else {
+        past_imu.clear();
+    }
 }
 
 void
@@ -186,18 +210,15 @@ ComsOdom::send_transforms() {
      * Get the speed at the center of body
      */
     speed += std::get<2>(d_rpy) * track / 2;
-    auto imu_dt = (current_imu_data.header.stamp
-                   - last_imu_data.header.stamp).toSec();
 
+    auto yaw = get_current_yaw();
     rpy = std::make_tuple(
         0,
         0,
         //limit_rad(std::get<0>(rpy) + (std::get<0>(d_rpy) * imu_dt)),
         //limit_rad(std::get<1>(rpy) + (std::get<1>(d_rpy) * imu_dt)),
-        limit_rad(std::get<2>(rpy) + (std::get<2>(d_rpy) * imu_dt))
+        yaw
     );
-
-    auto yaw = std::get<2>(rpy);
 
     // Then, calculate the position
     // TODO: Consider roll, pitch, and yaw
@@ -266,4 +287,58 @@ ComsOdom::send_transforms() {
     odom.twist.twist.angular.y = std::get<1>(d_rpy);
     odom.twist.twist.angular.z = std::get<2>(d_rpy);
     odom_pub.publish(odom);
+}
+
+double
+ComsOdom::limit_rad(const double val) {
+    if (val > M_PI) {
+        return val - (2 * M_PI);
+    }
+    else if (val < -M_PI) {
+        return val + (2 * M_PI);
+    }
+    return val;
+}
+
+double
+ComsOdom::get_current_yaw() {
+    auto imu_dt = (current_imu_data.header.stamp
+                   - last_imu_data.header.stamp).toSec();
+    auto yaw = limit_rad(std::get<2>(rpy) + (std::get<2>(d_rpy) * imu_dt));
+
+    if (drift_correction == 0) {
+        return yaw;
+    }
+
+    return yaw - drift();
+}
+
+double
+ComsOdom::drift() {
+    if (past_imu.empty()) {
+        return last_calculated_drift;
+    }
+
+    const auto& newest = past_imu.back();
+    const auto& oldest = past_imu.front();
+    auto d_t = newest.header.stamp - oldest.header.stamp;
+    auto d_yaw = get_yaw(newest.orientation) - get_yaw(oldest.orientation);
+
+    last_calculated_drift = d_yaw / d_t.toSec();
+    return last_calculated_drift;
+}
+
+double
+ComsOdom::get_yaw(const geometry_msgs::Quaternion& q) {
+    double r, p, y;
+    std::tie(r, p, y) = get_rpy(q);
+    return y;
+}
+
+std::tuple<double, double, double>
+ComsOdom::get_rpy(const geometry_msgs::Quaternion& q) {
+    auto tf_q = tf2::Quaternion{q.x, q.y, q.z, q.w};
+    double r, p, y;
+    tf2::Matrix3x3{tf_q}.getRPY(r, p, y);
+    return std::make_tuple(r, p, y);
 }

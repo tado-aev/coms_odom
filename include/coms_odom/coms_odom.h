@@ -10,6 +10,8 @@
 #include <sensor_msgs/Imu.h>
 #include <geometry_msgs/TransformStamped.h>
 
+#include <boost/circular_buffer.hpp>
+
 #include <cmath>
 #include <string>
 
@@ -19,6 +21,7 @@ public:
     ComsOdom(unsigned int counts_per_rotation,
              double track,
              double wheel_diameter,
+             unsigned int drift_correction,
              const std::string& odom_frame,
              const std::string& base_frame);
 
@@ -69,6 +72,14 @@ private:
      */
     double wheel_diameter;
 
+    /*
+     * How many samples to use for drift correction (0 to disable)
+     */
+    unsigned drift_correction;
+    boost::circular_buffer<sensor_msgs::Imu> past_imu;
+    // Used for correcting the drift while moving
+    double last_calculated_drift;
+
     std::string odom_frame;
     std::string base_frame;
 
@@ -91,17 +102,25 @@ private:
      */
     double
     limit_rad(const double val);
-};
 
-double
-ComsOdom::limit_rad(const double val) {
-    if (val > M_PI) {
-        return val - (2 * M_PI);
-    }
-    else if (val < -M_PI) {
-        return val + (2 * M_PI);
-    }
-    return val;
-}
+    /**
+     * Returns the drift-corrected yaw (in radians)
+     */
+    double
+    get_current_yaw();
+
+    /**
+     * Calculates the drift from the past IMU data
+     * @return average drift in the past IMU data
+     */
+    double
+    drift();
+
+    double
+    get_yaw(const geometry_msgs::Quaternion& q);
+
+    std::tuple<double, double, double>
+    get_rpy(const geometry_msgs::Quaternion& q);
+};
 
 #endif /* end of include guard */

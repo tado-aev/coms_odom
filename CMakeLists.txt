@@ -36,6 +36,7 @@ include_directories(
 add_library(
     coms_odom
     src/coms_odom.cpp
+    include/coms_odom/coms_odom.h
     )
 
 add_executable(
