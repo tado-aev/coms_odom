@@ -188,11 +188,7 @@ ComsOdom::get_rpy() {
                    - last_imu_data.header.stamp).toSec();
     auto yaw = limit_rad(std::get<2>(rpy) + (std::get<2>(d_rpy) * imu_dt));
 
-    if (drift_correction == 0) {
-        return std::make_tuple(0, 0, yaw);
-    }
-
-    return std::make_tuple(0, 0, yaw - drift());
+    return std::make_tuple(0, 0, yaw);
 }
 
 double
