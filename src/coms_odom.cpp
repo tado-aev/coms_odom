@@ -6,14 +6,16 @@ ComsOdom::ComsOdom(unsigned int counts_per_rotation,
                    double track,
                    double wheel_diameter,
                    unsigned int drift_correction,
+                   double stop_threshold,
                    const std::string& odom_frame,
                    const std::string& base_frame)
-    : counts_per_rotation{counts_per_rotation}
+    : nh{}
+    , counts_per_rotation{counts_per_rotation}
     , track{track}
     , wheel_diameter{wheel_diameter}
     , drift_correction{drift_correction}
     , past_imu{drift_correction}
-    , last_calculated_drift{0}
+    , stop_threshold{stop_threshold}
     , odom_frame{odom_frame}
     , base_frame{base_frame}
     , is_first_encoder_msg{true}
@@ -62,7 +64,7 @@ ComsOdom::imu_callback(const sensor_msgs::Imu& data) {
     is_first_imu_msg = false;
 
     // Can't calculate drift when moving
-    if (speed == 0) {
+    if (speed < stop_threshold) {
         past_imu.push_back(current_imu_data);
     }
     else {

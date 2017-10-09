@@ -8,3 +8,4 @@ counts_per_rotation: 2000
 track: 0.92
 # Number of samples used for automatic drift correction (0 to disable)
 drift_correction: 200
+stop_threshold: 0.005

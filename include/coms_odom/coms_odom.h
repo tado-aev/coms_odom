@@ -22,6 +22,7 @@ public:
              double track,
              double wheel_diameter,
              unsigned int drift_correction,
+             double stop_threshold,
              const std::string& odom_frame,
              const std::string& base_frame);
 
