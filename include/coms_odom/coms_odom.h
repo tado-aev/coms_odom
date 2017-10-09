@@ -78,6 +78,7 @@ private:
      */
     unsigned drift_correction;
     boost::circular_buffer<sensor_msgs::Imu> past_imu;
+    double last_calculated_drift;
     double stop_threshold;
 
     std::string odom_frame;

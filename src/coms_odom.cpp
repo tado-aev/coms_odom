@@ -15,6 +15,7 @@ ComsOdom::ComsOdom(unsigned int counts_per_rotation,
     , wheel_diameter{wheel_diameter}
     , drift_correction{drift_correction}
     , past_imu{drift_correction}
+    , last_calculated_drift{0}
     , stop_threshold{stop_threshold}
     , odom_frame{odom_frame}
     , base_frame{base_frame}
@@ -64,7 +65,7 @@ ComsOdom::imu_callback(const sensor_msgs::Imu& data) {
     is_first_imu_msg = false;
 
     // Can't calculate drift when moving
-    if (speed < stop_threshold) {
+    if (std::fabs(speed) <= stop_threshold) {
         past_imu.push_back(current_imu_data);
     }
     else {
@@ -175,11 +176,8 @@ ComsOdom::send_transforms() {
 
 double
 ComsOdom::limit_rad(const double val) {
-    if (val > M_PI) {
-        return val - (2 * M_PI);
-    }
-    else if (val < -M_PI) {
-        return val + (2 * M_PI);
+    if (val > M_PI || val < -M_PI) {
+        return std::remainder(val, 2 * M_PI);
     }
     return val;
 }
@@ -196,7 +194,7 @@ ComsOdom::get_rpy() {
 double
 ComsOdom::drift() {
     if (past_imu.empty()) {
-        return 0;
+        return last_calculated_drift;
     }
 
     // Calculate average
@@ -204,7 +202,9 @@ ComsOdom::drift() {
     for (const auto& imu : past_imu) {
         omega_sum += imu.angular_velocity.z;
     }
-    return omega_sum / past_imu.size();
+    last_calculated_drift = omega_sum / past_imu.size();
+
+    return last_calculated_drift;
 }
 
 double
