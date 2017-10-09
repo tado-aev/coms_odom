@@ -194,7 +194,7 @@ ComsOdom::get_rpy() {
 double
 ComsOdom::drift() {
     if (past_imu.empty()) {
-        return last_calculated_drift;
+        return 0;
     }
 
     // Calculate average
@@ -202,9 +202,7 @@ ComsOdom::drift() {
     for (const auto& imu : past_imu) {
         omega_sum += imu.angular_velocity.z;
     }
-    last_calculated_drift = omega_sum / past_imu.size();
-
-    return last_calculated_drift;
+    return omega_sum / past_imu.size();
 }
 
 double
