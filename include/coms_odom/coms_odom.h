@@ -26,21 +26,21 @@ public:
              const std::string& base_frame);
 
     // Copy constructor
-    ComsOdom(const ComsOdom& other);
+    ComsOdom(const ComsOdom& other) = default;
 
     // Move constructor
-    ComsOdom(ComsOdom&& other);
+    ComsOdom(ComsOdom&& other) = default;
 
     // Destructor
-    ~ComsOdom();
+    ~ComsOdom() = default;
 
     // Assignment operator
     ComsOdom&
-    operator=(const ComsOdom& other);
+    operator=(const ComsOdom& other) = default;
 
     // Move assignment operator
     ComsOdom&
-    operator=(ComsOdom&& other);
+    operator=(ComsOdom&& other) = default;
     /* }}} */
 
     void
@@ -77,8 +77,7 @@ private:
      */
     unsigned drift_correction;
     boost::circular_buffer<sensor_msgs::Imu> past_imu;
-    // Used for correcting the drift while moving
-    double last_calculated_drift;
+    double stop_threshold;
 
     std::string odom_frame;
     std::string base_frame;
