@@ -106,21 +106,21 @@ private:
     /**
      * Returns the drift-corrected yaw (in radians)
      */
-    double
-    get_current_yaw();
+    std::tuple<double, double, double>
+    get_rpy();
 
     /**
-     * Calculates the drift from the past IMU data
+     * Calculates the drift angular velocity from the past IMU data
      * @return average drift in the past IMU data
      */
     double
     drift();
 
     double
-    get_yaw(const geometry_msgs::Quaternion& q);
+    q_to_yaw(const geometry_msgs::Quaternion& q);
 
     std::tuple<double, double, double>
-    get_rpy(const geometry_msgs::Quaternion& q);
+    q_to_rpy(const geometry_msgs::Quaternion& q);
 };
 
 #endif /* end of include guard */

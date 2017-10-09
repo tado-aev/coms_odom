@@ -203,22 +203,18 @@ ComsOdom::send_transforms() {
      *
      * We must rotate the axes accordingly.
      */
-    d_rpy = std::make_tuple(current_imu_data.angular_velocity.x,
-                            -current_imu_data.angular_velocity.y,
-                            -current_imu_data.angular_velocity.z);
+    d_rpy = std::make_tuple(
+        current_imu_data.angular_velocity.x,
+        -current_imu_data.angular_velocity.y,
+        -(current_imu_data.angular_velocity.z - drift())
+    );
     /*
      * Get the speed at the center of body
      */
     speed += std::get<2>(d_rpy) * track / 2;
 
-    auto yaw = get_current_yaw();
-    rpy = std::make_tuple(
-        0,
-        0,
-        //limit_rad(std::get<0>(rpy) + (std::get<0>(d_rpy) * imu_dt)),
-        //limit_rad(std::get<1>(rpy) + (std::get<1>(d_rpy) * imu_dt)),
-        yaw
-    );
+    rpy = get_rpy();
+    auto yaw = std::get<2>(rpy);
 
     // Then, calculate the position
     // TODO: Consider roll, pitch, and yaw
@@ -283,6 +279,7 @@ ComsOdom::send_transforms() {
     odom.twist.twist.linear.x = std::get<0>(d_xyz);
     odom.twist.twist.linear.y = std::get<1>(d_xyz);
     odom.twist.twist.linear.z = std::get<2>(d_xyz);
+    // Angular velocity
     odom.twist.twist.angular.x = std::get<0>(d_rpy);
     odom.twist.twist.angular.y = std::get<1>(d_rpy);
     odom.twist.twist.angular.z = std::get<2>(d_rpy);
@@ -300,17 +297,17 @@ ComsOdom::limit_rad(const double val) {
     return val;
 }
 
-double
-ComsOdom::get_current_yaw() {
+std::tuple<double, double, double>
+ComsOdom::get_rpy() {
     auto imu_dt = (current_imu_data.header.stamp
                    - last_imu_data.header.stamp).toSec();
     auto yaw = limit_rad(std::get<2>(rpy) + (std::get<2>(d_rpy) * imu_dt));
 
     if (drift_correction == 0) {
-        return yaw;
+        return std::make_tuple(0, 0, yaw);
     }
 
-    return yaw - drift();
+    return std::make_tuple(0, 0, yaw - drift());
 }
 
 double
@@ -319,24 +316,25 @@ ComsOdom::drift() {
         return last_calculated_drift;
     }
 
-    const auto& newest = past_imu.back();
-    const auto& oldest = past_imu.front();
-    auto d_t = newest.header.stamp - oldest.header.stamp;
-    auto d_yaw = get_yaw(newest.orientation) - get_yaw(oldest.orientation);
+    // Calculate average
+    double omega_sum = 0;
+    for (const auto& imu : past_imu) {
+        omega_sum += imu.angular_velocity.z;
+    }
+    last_calculated_drift = omega_sum / past_imu.size();
 
-    last_calculated_drift = d_yaw / d_t.toSec();
     return last_calculated_drift;
 }
 
 double
-ComsOdom::get_yaw(const geometry_msgs::Quaternion& q) {
+ComsOdom::q_to_yaw(const geometry_msgs::Quaternion& q) {
     double r, p, y;
-    std::tie(r, p, y) = get_rpy(q);
+    std::tie(r, p, y) = q_to_rpy(q);
     return y;
 }
 
 std::tuple<double, double, double>
-ComsOdom::get_rpy(const geometry_msgs::Quaternion& q) {
+ComsOdom::q_to_rpy(const geometry_msgs::Quaternion& q) {
     auto tf_q = tf2::Quaternion{q.x, q.y, q.z, q.w};
     double r, p, y;
     tf2::Matrix3x3{tf_q}.getRPY(r, p, y);
