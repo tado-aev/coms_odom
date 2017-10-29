@@ -4,8 +4,8 @@ odom_frame: 'odom'
 wheel_diameter: 0.5078
 # 4 times the pulses per rotation from the transducer
 counts_per_rotation: 2000
-# Axle track (positive if encoder is on the left wheel, negative if on right
+# Axle track (positive if encoder is on the left wheel, negative if on right)
 track: 0.92
 # Number of samples used for automatic drift correction (0 to disable)
 drift_correction: 200
-stop_threshold: 0.005
+stop_threshold: 0.03
