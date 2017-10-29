@@ -7,6 +7,7 @@ ComsOdom::ComsOdom(unsigned int counts_per_rotation,
                    double wheel_diameter,
                    unsigned int drift_correction,
                    double stop_threshold,
+                   bool clear_on_move,
                    const std::string& odom_frame,
                    const std::string& base_frame)
     : nh{}
@@ -17,6 +18,7 @@ ComsOdom::ComsOdom(unsigned int counts_per_rotation,
     , past_imu{drift_correction}
     , last_calculated_drift{0}
     , stop_threshold{stop_threshold}
+    , clear_on_move{clear_on_move}
     , odom_frame{odom_frame}
     , base_frame{base_frame}
     , is_first_encoder_msg{true}
@@ -68,7 +70,8 @@ ComsOdom::imu_callback(const sensor_msgs::Imu& data) {
     if (std::fabs(speed) <= stop_threshold) {
         past_imu.push_back(current_imu_data);
     }
-    else {
+    // Vehicle moved
+    else if (clear_on_move) {
         past_imu.clear();
     }
 }

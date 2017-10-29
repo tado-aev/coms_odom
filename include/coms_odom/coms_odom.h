@@ -23,6 +23,7 @@ public:
              double wheel_diameter,
              unsigned int drift_correction,
              double stop_threshold,
+             bool clear_on_move,
              const std::string& odom_frame,
              const std::string& base_frame);
 
@@ -80,6 +81,7 @@ private:
     boost::circular_buffer<sensor_msgs::Imu> past_imu;
     double last_calculated_drift;
     double stop_threshold;
+    bool clear_on_move;
 
     std::string odom_frame;
     std::string base_frame;

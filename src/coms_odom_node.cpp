@@ -18,6 +18,7 @@ main(int argc, char* argv[]) {
     std::string odom_frame;
     int drift_correction;
     double stop_threshold;
+    bool clear_on_move;
 
     if (!nh_p.hasParam("wheel_diameter")) {
         ROS_ERROR("Required parameter wheel_diameter not specified");
@@ -39,12 +40,14 @@ main(int argc, char* argv[]) {
     nh_p.param("odom_frame", odom_frame, std::string{"odom"});
     nh_p.param("drift_correction", drift_correction, 0);
     nh_p.param("stop_threshold", stop_threshold, 0.0);
+    nh_p.param("clear_on_move", clear_on_move, false);
 
     ComsOdom coms_odom{static_cast<unsigned int>(counts_per_rotation),
                        track,
                        wheel_diameter,
                        static_cast<unsigned int>(drift_correction),
                        stop_threshold,
+                       clear_on_move,
                        odom_frame,
                        base_frame};
 

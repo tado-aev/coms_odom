@@ -9,3 +9,5 @@ track: 0.92
 # Number of samples used for automatic drift correction (0 to disable)
 drift_correction: 200
 stop_threshold: 0.03
+# Whether to clear the buffer when vehicle movement is detected
+clear_on_move: false
