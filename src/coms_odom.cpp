@@ -167,9 +167,9 @@ ComsOdom::send_transforms() {
     odom.pose.pose.orientation = tf2::toMsg(rpy_quat);
     // Velocity
     odom.child_frame_id = base_frame;
-    odom.twist.twist.linear.x = std::get<0>(d_xyz);
-    odom.twist.twist.linear.y = std::get<1>(d_xyz);
-    odom.twist.twist.linear.z = std::get<2>(d_xyz);
+    odom.twist.twist.linear.x = speed;
+    odom.twist.twist.linear.y = 0;
+    odom.twist.twist.linear.z = 0;
     // Angular velocity
     odom.twist.twist.angular.x = std::get<0>(d_rpy);
     odom.twist.twist.angular.y = std::get<1>(d_rpy);
